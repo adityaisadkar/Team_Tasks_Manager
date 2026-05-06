@@ -1,8 +1,9 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import api from '../api/axios';
-import { CheckCircle2, Clock, FolderKanban, AlertCircle, Settings } from 'lucide-react';
+import { CheckCircle2, Clock, FolderKanban, AlertCircle, Settings, Users } from 'lucide-react';
 import { format } from 'date-fns';
+import { useAuth } from '../context/AuthContext';
 
 const StatCard = ({ title, value, icon: Icon, colorClass, trend }) => (
   <div className="glass-card p-6 flex flex-col gap-4 hover:shadow-lg transition-shadow duration-300">
@@ -25,6 +26,7 @@ const StatCard = ({ title, value, icon: Icon, colorClass, trend }) => (
 );
 
 const Dashboard = () => {
+  const { user } = useAuth();
   const { data: statsData, isLoading: loadingStats } = useQuery({
     queryKey: ['dashboard-stats'],
     queryFn: () => api.get('/dashboard/stats').then(res => res.data.data),
@@ -90,7 +92,7 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 glass-card overflow-hidden">
           <div className="p-6 border-b border-gray-100 flex justify-between items-center">
-            <h2 className="text-xl font-bold text-gray-900">My Assigned Tasks</h2>
+            <h2 className="text-xl font-bold text-gray-900">{user?.role === 'admin' ? 'Assigned Tasks' : 'My Assigned Tasks'}</h2>
             <button className="text-sm font-semibold text-indigo-600 hover:text-indigo-700">View all</button>
           </div>
           <div className="p-0">
@@ -109,6 +111,9 @@ const Dashboard = () => {
                     <tr className="bg-gray-50/50">
                       <th className="px-6 py-4 font-semibold text-gray-600 text-xs uppercase tracking-wider">Task Title</th>
                       <th className="px-6 py-4 font-semibold text-gray-600 text-xs uppercase tracking-wider">Project</th>
+                      {user?.role === 'admin' && (
+                        <th className="px-6 py-4 font-semibold text-gray-600 text-xs uppercase tracking-wider">Assigned To</th>
+                      )}
                       <th className="px-6 py-4 font-semibold text-gray-600 text-xs uppercase tracking-wider">Status</th>
                       <th className="px-6 py-4 font-semibold text-gray-600 text-xs uppercase tracking-wider">Priority</th>
                       <th className="px-6 py-4 font-semibold text-gray-600 text-xs uppercase tracking-wider">Due Date</th>
@@ -125,6 +130,22 @@ const Dashboard = () => {
                             {task.project?.name}
                           </span>
                         </td>
+                        {user?.role === 'admin' && (
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-2">
+                              {task.assignedTo ? (
+                                <>
+                                  <div className="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center text-[10px] font-bold text-indigo-700">
+                                    {task.assignedTo?.name?.charAt(0).toUpperCase()}
+                                  </div>
+                                  <span className="text-sm font-medium text-gray-700">{task.assignedTo?.name}</span>
+                                </>
+                              ) : (
+                                <span className="text-sm font-italic text-gray-400">Unassigned</span>
+                              )}
+                            </div>
+                          </td>
+                        )}
                         <td className="px-6 py-4">
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${task.status === 'done' ? 'bg-emerald-100 text-emerald-700' :
                             task.status === 'in-progress' ? 'bg-blue-100 text-blue-700' :

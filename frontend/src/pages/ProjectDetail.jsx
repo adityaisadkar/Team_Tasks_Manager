@@ -12,7 +12,7 @@ const ProjectDetail = () => {
   const queryClient = useQueryClient();
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [isMemberModalOpen, setIsMemberModalOpen] = useState(false);
-  const [newTask, setNewTask] = useState({ title: '', description: '', priority: 'medium', dueDate: '' });
+  const [newTask, setNewTask] = useState({ title: '', description: '', priority: 'medium', dueDate: '', assignedTo: '' });
 
   const { data: project, isLoading: loadingProject } = useQuery({
     queryKey: ['project', id],
@@ -30,7 +30,7 @@ const ProjectDetail = () => {
       queryClient.invalidateQueries(['tasks', id]);
       queryClient.invalidateQueries(['dashboard-stats']);
       setIsTaskModalOpen(false);
-      setNewTask({ title: '', description: '', priority: 'medium', dueDate: '' });
+      setNewTask({ title: '', description: '', priority: 'medium', dueDate: '', assignedTo: '' });
     }
   });
 
@@ -112,7 +112,7 @@ const ProjectDetail = () => {
         </div>
       </div>
 
-      <KanbanBoard projectId={id} tasks={tasks} />
+      <KanbanBoard projectId={id} tasks={tasks} members={project.members} />
 
       </div>
 
@@ -214,6 +214,21 @@ const ProjectDetail = () => {
                     onChange={e => setNewTask({...newTask, dueDate: e.target.value})}
                   />
                 </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Assign To</label>
+                <select
+                  className="input-field"
+                  value={newTask.assignedTo}
+                  onChange={e => setNewTask({...newTask, assignedTo: e.target.value})}
+                >
+                  <option value="">Unassigned</option>
+                  {project.members.map(member => (
+                    <option key={member._id} value={member._id}>
+                      {member.name} ({member.email})
+                    </option>
+                  ))}
+                </select>
               </div>
               <div className="flex gap-3 justify-end pt-4">
                 <button type="button" onClick={() => setIsTaskModalOpen(false)} className="btn btn-secondary">Cancel</button>

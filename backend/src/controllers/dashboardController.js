@@ -45,11 +45,20 @@ const getStats = async (req, res, next) => {
 // ─── GET /api/dashboard/my-tasks ──────────────────────────────────────────
 const getMyTasks = async (req, res, next) => {
   try {
-    const tasks = await Task.find({ assignedTo: req.user._id })
+    let query = {};
+    if (req.user.role !== 'admin') {
+      query = { assignedTo: req.user._id };
+    } else {
+      // For admin, show all tasks so they can see all project allotments and progress
+      query = {};
+    }
+
+    const tasks = await Task.find(query)
       .populate('project', 'name color')
+      .populate('assignedTo', 'name avatar')
       .sort({ dueDate: 1, createdAt: -1 });
 
-    return sendSuccess(res, 200, 'My tasks retrieved', tasks);
+    return sendSuccess(res, 200, 'Tasks retrieved', tasks);
   } catch (error) {
     next(error);
   }

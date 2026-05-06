@@ -5,7 +5,7 @@ import api from '../api/axios';
 import { format } from 'date-fns';
 import { Clock, Tag } from 'lucide-react';
 
-const KanbanBoard = ({ projectId, tasks }) => {
+const KanbanBoard = ({ projectId, tasks, members }) => {
   const queryClient = useQueryClient();
   const [columns, setColumns] = useState({
     'todo': [],
@@ -32,6 +32,15 @@ const KanbanBoard = ({ projectId, tasks }) => {
     onSuccess: () => {
       queryClient.invalidateQueries(['tasks', projectId]);
       queryClient.invalidateQueries(['dashboard-stats']);
+    }
+  });
+
+  const updateAssignment = useMutation({
+    mutationFn: ({ taskId, userId }) => api.put(`/tasks/${taskId}`, { assignedTo: userId || null }),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['tasks', projectId]);
+      queryClient.invalidateQueries(['dashboard-stats']);
+      queryClient.invalidateQueries(['my-tasks']);
     }
   });
 
@@ -118,6 +127,21 @@ const KanbanBoard = ({ projectId, tasks }) => {
                             <h4 className="font-medium text-gray-900 mb-1">{task.title}</h4>
                             {task.description && <p className="text-xs text-gray-500 line-clamp-2 mb-3">{task.description}</p>}
                             
+                            {members && (
+                              <div className="mt-2 mb-3">
+                                <select 
+                                  className="text-[10px] w-full bg-gray-50 border border-gray-200 rounded px-1 py-0.5 font-medium text-gray-600 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                  value={task.assignedTo?._id || ''}
+                                  onChange={(e) => updateAssignment.mutate({ taskId: task._id, userId: e.target.value })}
+                                >
+                                  <option value="">Unassigned</option>
+                                  {members.map(m => (
+                                    <option key={m._id} value={m._id}>{m.name}</option>
+                                  ))}
+                                </select>
+                              </div>
+                            )}
+
                             <div className="flex items-center justify-between mt-3 text-xs text-gray-500">
                               {task.dueDate ? (
                                 <div className={`flex items-center gap-1 ${task.isOverdue ? 'text-red-500 font-medium' : ''}`}>
