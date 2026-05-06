@@ -223,8 +223,8 @@ button {
 
 /* Spacing */
 .px-6 { padding-left: 1.5rem; padding-right: 1.5rem; }
-.px-2.5 { padding-left: 0.625rem; padding-right: 0.625rem; }
-.py-0.5 { padding-top: 0.125rem; padding-bottom: 0.125rem; }
+.px-2\.5 { padding-left: 0.625rem; padding-right: 0.625rem; }
+.py-0\.5 { padding-top: 0.125rem; padding-bottom: 0.125rem; }
 .pb-10 { padding-bottom: 2.5rem; }
 
 /* Typography */
